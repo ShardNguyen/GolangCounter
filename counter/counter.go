@@ -9,48 +9,27 @@ import (
 )
 
 type Counter struct {
-	mu    sync.Mutex
-	count int
-	sum   int
-}
-
-func (counter *Counter) IncreaseCounter() {
-	counter.mu.Lock()
-	counter.count++
-	counter.mu.Unlock()
-}
-
-func (counter *Counter) DecreaseCounter() {
-	counter.count--
-}
-
-func (counter *Counter) checkZeroCount() bool {
-	counter.mu.Lock()
-	check := counter.count == 0
-	counter.mu.Unlock()
-	return check
+	mu  sync.Mutex
+	wg  sync.WaitGroup
+	sum int
 }
 
 func (counter *Counter) Add(value int) {
+	defer counter.wg.Done()
 	counter.mu.Lock()
 	counter.sum += value
-	counter.DecreaseCounter()
 	counter.mu.Unlock()
-}
-
-func (counter *Counter) StringCount() string {
-	return fmt.Sprintf("%d", counter.count)
 }
 
 func (counter *Counter) StringSum() string {
 	return fmt.Sprintf("%d", counter.sum)
 }
 
-func (counter *Counter) ReadFile(path string) {
+func (counter *Counter) ReadFile(path string) error {
 	data, err := os.Open(path)
 
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	scanner := bufio.NewScanner(data)
@@ -58,17 +37,13 @@ func (counter *Counter) ReadFile(path string) {
 	// scanner.Scan() is basically reading line by line
 	for scanner.Scan() {
 		num, err := strconv.Atoi(scanner.Text()) // Converting string to number
-		counter.IncreaseCounter()
-		go func() {
-			if err != nil {
-				panic(err)
-			} else {
-				counter.Add(num)
-			}
-		}()
-	}
+		if err != nil {
+			continue
+		}
 
-	for !counter.checkZeroCount() {
-
+		counter.wg.Add(1)
+		go counter.Add(num)
 	}
+	counter.wg.Wait()
+	return nil
 }
