@@ -39,7 +39,7 @@ func (counter *Counter) ReadFile(path string) {
 	for scanner.Scan() {
 		num, err := strconv.Atoi(scanner.Text()) // Converting string to number
 		fmt.Println(num)
-		go func() {
+		func() {
 			if err != nil {
 				panic(err)
 			} else {
