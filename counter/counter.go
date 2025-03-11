@@ -3,7 +3,6 @@ package counter
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"sync"
@@ -15,15 +14,36 @@ type Counter struct {
 	sum   int
 }
 
-func (counter *Counter) Add(value int) {
+func (counter *Counter) IncreaseCounter() {
 	counter.mu.Lock()
 	counter.count++
-	counter.sum += value
 	counter.mu.Unlock()
 }
 
-func (counter *Counter) String() string {
+func (counter *Counter) DecreaseCounter() {
+	counter.count--
+}
+
+func (counter *Counter) checkZeroCount() bool {
+	counter.mu.Lock()
+	check := counter.count == 0
+	counter.mu.Unlock()
+	return check
+}
+
+func (counter *Counter) Add(value int) {
+	counter.mu.Lock()
+	counter.sum += value
+	counter.DecreaseCounter()
+	counter.mu.Unlock()
+}
+
+func (counter *Counter) StringCount() string {
 	return fmt.Sprintf("%d", counter.count)
+}
+
+func (counter *Counter) StringSum() string {
+	return fmt.Sprintf("%d", counter.sum)
 }
 
 func (counter *Counter) ReadFile(path string) {
@@ -38,8 +58,8 @@ func (counter *Counter) ReadFile(path string) {
 	// scanner.Scan() is basically reading line by line
 	for scanner.Scan() {
 		num, err := strconv.Atoi(scanner.Text()) // Converting string to number
-		fmt.Println(num)
-		func() {
+		counter.IncreaseCounter()
+		go func() {
 			if err != nil {
 				panic(err)
 			} else {
@@ -48,8 +68,7 @@ func (counter *Counter) ReadFile(path string) {
 		}()
 	}
 
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
+	for !counter.checkZeroCount() {
+
 	}
-	// fmt.Printf("File content: %s\n", data)
 }
