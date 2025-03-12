@@ -10,12 +10,10 @@ import (
 
 type Counter struct {
 	mu  sync.Mutex
-	wg  sync.WaitGroup
 	sum int
 }
 
 func (counter *Counter) Add(value int) {
-	defer counter.wg.Done()
 	counter.mu.Lock()
 	counter.sum += value
 	counter.mu.Unlock()
@@ -27,6 +25,7 @@ func (counter *Counter) StringSum() string {
 
 func (counter *Counter) ReadFile(path string) error {
 	data, err := os.Open(path)
+	var wg sync.WaitGroup
 
 	if err != nil {
 		return err
@@ -41,9 +40,12 @@ func (counter *Counter) ReadFile(path string) error {
 			continue
 		}
 
-		counter.wg.Add(1)
-		go counter.Add(num)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			counter.Add(num)
+		}()
 	}
-	counter.wg.Wait()
+	wg.Wait()
 	return nil
 }
