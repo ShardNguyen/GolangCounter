@@ -15,7 +15,6 @@ type Counter struct {
 }
 
 func (counter *Counter) Add(value int) {
-	defer counter.wg.Done()
 	counter.mu.Lock()
 	counter.sum += value
 	counter.mu.Unlock()
@@ -42,7 +41,10 @@ func (counter *Counter) ReadFile(path string) error {
 		}
 
 		counter.wg.Add(1)
-		go counter.Add(num)
+		go func() {
+			defer counter.wg.Done()
+			counter.Add(num)
+		}()
 	}
 	counter.wg.Wait()
 	return nil
