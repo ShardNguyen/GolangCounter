@@ -46,6 +46,7 @@ func (counter *Counter) ReadFile(path string) error {
 			counter.Add(num)
 		}()
 	}
+
 	wg.Wait()
 	return nil
 }
