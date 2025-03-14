@@ -10,7 +10,7 @@ func NewConsumer(ch chan int) *Consumer {
 	return consumer
 }
 
-func (c *Consumer) Consume(f func(*int, int), sum *int) int {
-	f(sum, <-c.ch)
-	return *sum
+func (c *Consumer) Consume(callback func(int)) {
+	value := <-c.ch
+	callback(value)
 }

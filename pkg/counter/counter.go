@@ -13,6 +13,13 @@ type Counter struct {
 	sum int
 }
 
+func NewCounter() *Counter {
+	count := new(Counter)
+	count.mu = sync.Mutex{}
+	count.sum = 0
+	return count
+}
+
 func (counter *Counter) Add(value int) {
 	counter.mu.Lock()
 	counter.sum += value
