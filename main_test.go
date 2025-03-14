@@ -1,14 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 	"testing"
 
+	"github.com/ShardNguyen/GolangCounter/pkg/consumer"
 	"github.com/ShardNguyen/GolangCounter/pkg/counter"
+	"github.com/ShardNguyen/GolangCounter/pkg/producer"
 )
 
 func TestMain(t *testing.T) {
+	// Counter
 	var counter counter.Counter
 	var wg sync.WaitGroup
 
@@ -29,5 +31,20 @@ func TestMain(t *testing.T) {
 	}()
 
 	wg.Wait()
-	fmt.Println(counter.StringSum())
+
+	// Producer and Consumer
+	ch := make(chan int)
+	pro := producer.NewProducer(ch)
+	con := consumer.NewConsumer(ch)
+
+	wg.Add(1)
+	go func() {
+		pro.Produce(counter.GetSum())
+	}()
+	go func() {
+		defer wg.Done()
+		con.Consume()
+	}()
+
+	wg.Wait()
 }
