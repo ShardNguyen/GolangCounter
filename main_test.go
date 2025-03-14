@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ShardNguyen/GolangCounter/counter"
+	"github.com/ShardNguyen/GolangCounter/pkg/counter"
 )
 
 func TestMain(t *testing.T) {
