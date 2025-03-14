@@ -19,6 +19,10 @@ func (counter *Counter) Add(value int) {
 	counter.mu.Unlock()
 }
 
+func (counter *Counter) GetSum() int {
+	return counter.sum
+}
+
 func (counter *Counter) StringSum() string {
 	return fmt.Sprintf("%d", counter.sum)
 }
